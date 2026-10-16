@@ -17,17 +17,10 @@ export default function Education() {
   const defaultCertifications = [
     {
       id: 1,
-      title: '',
-      organization: '',
-      date: '',
-      image: null,
-    },
-    {
-      id: 2,
-      title: '',
-      organization: '',
-      date: '',
-      image: null,
+      title: 'Azure AI Fundamentals',
+      organization: 'Technical Education and Skills Development Authority',
+      date: 'October 08, 2026',
+      image: 'https://ngtqirwawuocqmgbtirk.supabase.co/storage/v1/object/public/portfolio-uploads/Certificate_of_Completion%20Azure(1).jpg',
     },
   ];
 

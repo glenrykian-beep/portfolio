@@ -9,7 +9,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
-import { triggerCloudSync } from '../utils/cloudStorage';
+import { triggerCloudSync, uploadPortfolioImage } from '../utils/cloudStorage';
 
 export default function Education() {
   const { isAdmin } = useAdmin();
@@ -75,16 +75,15 @@ export default function Education() {
   // Lightbox modal state for viewing certificate full image
   const [lightboxImage, setLightboxImage] = useState(null);
 
-  // Handle certificate image upload
-  const handleCertImage = (id, file) => {
+  // Handle certificate image upload via Supabase Storage or Base64 fallback
+  const handleCertImage = async (id, file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    const imageUrl = await uploadPortfolioImage(file, 'certifications');
+    if (imageUrl) {
       setCertifications((prev) =>
-        prev.map((cert) => (cert.id === id ? { ...cert, image: e.target.result } : cert))
+        prev.map((cert) => (cert.id === id ? { ...cert, image: imageUrl } : cert))
       );
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   // Update certificate field

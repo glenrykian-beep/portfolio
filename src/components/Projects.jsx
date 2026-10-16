@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ExternalLink, Github, Eye, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
 import ProjectModal from './ProjectModal';
 import { useAdmin } from '../context/AdminContext';
-import { triggerCloudSync } from '../utils/cloudStorage';
+import { triggerCloudSync, uploadPortfolioImage } from '../utils/cloudStorage';
 
 export default function Projects() {
   const { isAdmin } = useAdmin();
@@ -118,25 +118,23 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Handle local image file upload via FileReader
-  const handleImageUpload = (projectId, slotIndex, file) => {
+  // Handle image file upload via Supabase Storage or Base64 fallback
+  const handleImageUpload = async (projectId, slotIndex, file) => {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target.result;
+    const imageUrl = await uploadPortfolioImage(file, 'projects');
+    if (imageUrl) {
       setProjects((prevProjects) =>
         prevProjects.map((p) => {
           if (p.id === projectId) {
             const nextImages = [...p.images];
-            nextImages[slotIndex] = dataUrl;
+            nextImages[slotIndex] = imageUrl;
             return { ...p, images: nextImages };
           }
           return p;
         })
       );
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   // Remove uploaded image

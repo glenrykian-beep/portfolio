@@ -17,7 +17,7 @@ export default function Hero() {
     highlights: [],
   };
 
-  const displayName = (!heroData.name || heroData.name === 'Glen R.') ? 'GIG' : heroData.name;
+  const displayName = heroData.name || 'Glenryk Ian Gregorio';
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({

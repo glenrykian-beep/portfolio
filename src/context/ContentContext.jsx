@@ -5,7 +5,7 @@ const ContentContext = createContext(null);
 
 export const defaultContent = {
   hero: {
-    name: 'GIG',
+    name: 'Glenryk Ian Gregorio',
     role: 'Civil Engineer & AI Automation Developer',
     bio: 'Undergraduate BS Civil Engineering graduate combining analytical thinking, programming, and automation to develop practical solutions for businesses.',
     highlights: [

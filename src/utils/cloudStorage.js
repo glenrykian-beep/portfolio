@@ -50,6 +50,8 @@ export async function fetchCloudPortfolio() {
         .single();
 
       if (!error && data && data.data) {
+        // Cache successful fetch for offline access
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(data.data));
         return data.data;
       }
     }
@@ -60,6 +62,7 @@ export async function fetchCloudPortfolio() {
       const response = await fetch(`https://api.npoint.io/${binId}`);
       if (response.ok) {
         const bundle = await response.json();
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(bundle));
         return bundle;
       }
     }
@@ -78,10 +81,10 @@ export async function fetchCloudPortfolio() {
   }
 }
 
-// Save/Publish portfolio data to Supabase and fallback
+// Save/Publish portfolio data to Supabase and fallback (auto-publishes on every change)
 export async function saveCloudPortfolio(portfolioData) {
   try {
-    // Always store in local cache
+    // Always store in local cache first for immediate UI feedback
     localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(portfolioData));
 
     let savedToSupabase = false;
@@ -93,6 +96,7 @@ export async function saveCloudPortfolio(portfolioData) {
 
       if (!error) {
         savedToSupabase = true;
+        console.log('✅ Published to Supabase - All customers will see updates within 30 seconds');
       } else {
         console.error('Supabase save error:', error);
       }
@@ -110,9 +114,14 @@ export async function saveCloudPortfolio(portfolioData) {
         if (createRes.ok) {
           const createData = await createRes.json();
           binId = createData.id || createData.binId;
-          if (binId) localStorage.setItem(BIN_ID_KEY, binId);
+          if (binId) {
+            localStorage.setItem(BIN_ID_KEY, binId);
+            console.log('✅ Created npoint.io backup bin');
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('npoint.io backup creation failed:', e);
+      }
     } else {
       try {
         await fetch(`https://api.npoint.io/${binId}`, {
@@ -120,7 +129,10 @@ export async function saveCloudPortfolio(portfolioData) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(portfolioData),
         });
-      } catch (e) {}
+        console.log('✅ Updated npoint.io backup bin');
+      } catch (e) {
+        console.warn('npoint.io backup update failed:', e);
+      }
     }
 
     return savedToSupabase || Boolean(binId);
@@ -131,7 +143,7 @@ export async function saveCloudPortfolio(portfolioData) {
   }
 }
 
-// Trigger cloud sync bundle
+// Trigger cloud sync bundle (called automatically on content changes)
 export async function triggerCloudSync() {
   try {
     const content = JSON.parse(localStorage.getItem('portfolio_content') || '{}');

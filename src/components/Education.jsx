@@ -48,8 +48,13 @@ export default function Education() {
   useEffect(() => {
     try {
       localStorage.setItem('portfolio_certifications', JSON.stringify(certifications));
+      // Auto-publish changes to cloud for all customers
       const timer = setTimeout(() => {
-        triggerCloudSync();
+        triggerCloudSync().then((success) => {
+          if (success) {
+            console.log('✅ Certifications auto-published to cloud - All customers will see updates within 30 seconds');
+          }
+        });
       }, 1000);
       return () => clearTimeout(timer);
     } catch (e) {}

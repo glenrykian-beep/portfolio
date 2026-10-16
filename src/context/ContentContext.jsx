@@ -135,14 +135,57 @@ export function ContentProvider({ children }) {
         }
       }
     });
+
+    // Auto-refresh content every 30 seconds to keep customers in sync
+    const refreshInterval = setInterval(() => {
+      fetchCloudPortfolio().then((cloudData) => {
+        if (cloudData) {
+          if (cloudData.content) {
+            try {
+              localStorage.setItem('portfolio_content', JSON.stringify(cloudData.content));
+              setContent((prev) => ({
+                ...defaultContent,
+                ...cloudData.content,
+                hero: { ...defaultContent.hero, ...(cloudData.content.hero || {}) },
+                contact: { ...defaultContent.contact, ...(cloudData.content.contact || {}) },
+                services: Array.isArray(cloudData.content.services) && cloudData.content.services.length > 0
+                  ? cloudData.content.services
+                  : defaultContent.services,
+                equipment: Array.isArray(cloudData.content.equipment)
+                  ? cloudData.content.equipment
+                  : defaultContent.equipment,
+              }));
+            } catch (e) {}
+          }
+          if (cloudData.projects) {
+            try {
+              localStorage.setItem('portfolio_projects', JSON.stringify(cloudData.projects));
+              window.dispatchEvent(new Event('portfolio_projects_updated'));
+            } catch (e) {}
+          }
+          if (cloudData.certifications) {
+            try {
+              localStorage.setItem('portfolio_certifications', JSON.stringify(cloudData.certifications));
+              window.dispatchEvent(new Event('portfolio_certifications_updated'));
+            } catch (e) {}
+          }
+        }
+      });
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
   useEffect(() => {
     try {
       localStorage.setItem('portfolio_content', JSON.stringify(content));
-      // Trigger auto cloud sync on change (debounced)
+      // Trigger auto cloud sync on change (debounced) - auto-publishes to all customers
       const timer = setTimeout(() => {
-        triggerCloudSync();
+        triggerCloudSync().then((success) => {
+          if (success) {
+            console.log('✅ Content auto-published to cloud - All customers will see updates within 30 seconds');
+          }
+        });
       }, 1000);
       return () => clearTimeout(timer);
     } catch (e) {

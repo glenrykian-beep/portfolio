@@ -86,8 +86,13 @@ export default function Projects() {
   useEffect(() => {
     try {
       localStorage.setItem('portfolio_projects', JSON.stringify(projects));
+      // Auto-publish changes to cloud for all customers
       const timer = setTimeout(() => {
-        triggerCloudSync();
+        triggerCloudSync().then((success) => {
+          if (success) {
+            console.log('✅ Projects auto-published to cloud - All customers will see updates within 30 seconds');
+          }
+        });
       }, 1000);
       return () => clearTimeout(timer);
     } catch (e) {}
